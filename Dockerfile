@@ -1,4 +1,4 @@
-FROM python:3.8-slim as envs
+FROM python:3.13-slim as envs
 
 # Set arguments to be used throughout the image
 ARG OPERATOR_HOME="/home/op"
@@ -7,7 +7,7 @@ ARG OPERATOR_UID="50000"
 
 # Set arguments for access s3 bucket to mount using s3fs
 ARG BUCKET_NAME
-ARG S3_ENDPOINT="https://s3.eu-central-1.amazonaws.com"
+ARG S3_ENDPOINT="eu-central-1"
 
 # Add environment variables based on arguments
 ENV OPERATOR_HOME ${OPERATOR_HOME}
@@ -25,10 +25,11 @@ FROM envs as dist
 # install s3fs
 RUN set -ex && \
     apt-get update && \
-    apt install s3fs -y
+    apt-get install -y fuse3 s3fs && \ 
+     rm -rf /var/lib/apt/lists/*
 
 # setup s3fs configs
-RUN echo "s3fs#${BUCKET_NAME} ${OPERATOR_HOME}/s3_bucket fuse _netdev,allow_other,nonempty,umask=000,uid=${OPERATOR_UID},gid=${OPERATOR_UID},passwd_file=${OPERATOR_HOME}/.s3fs-creds,use_cache=/tmp,url=${S3_ENDPOINT} 0 0" >> /etc/fstab
+RUN echo "s3fs#${BUCKET_NAME} ${OPERATOR_HOME}/s3_bucket fuse _netdev,allow_other,nonempty,sigv4,umask=000,uid=${OPERATOR_UID},gid=${OPERATOR_UID},passwd_file=${OPERATOR_HOME}/.s3fs-creds,use_cache=/tmp,endpoint=${S3_ENDPOINT} 0 0" >> /etc/fstab
 RUN sed -i '/user_allow_other/s/^#//g' /etc/fuse.conf
 
 # Set our user to the operator user
