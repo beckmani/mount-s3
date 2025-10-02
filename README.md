@@ -1,4 +1,4 @@
-podman lis# mount-s3
+# s3fs mount from Docker container
 
 This repository contains a singleton Dockerfile that is capable of mounting s3 bucket
 as file system using s3fs fuse.
